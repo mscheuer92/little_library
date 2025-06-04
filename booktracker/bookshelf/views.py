@@ -18,16 +18,30 @@ def get_book_list(request):
             serializer.save()
             return Response(serializer.data, status=201)
         else:
-            return Response(serializer.errors)        
+            return Response(serializer.errors)
     
 
 # View for getting a specific book by id.
 #/book/<id>
-@api_view()
+@api_view(['GET','PUT','DELETE'])
 def get_book_by_id(request, pk):
-    book = Book.objects.get(pk=pk)
-    serializer=BookSerializer(book)
-    return Response(serializer.data)
+    match request.method:
+        case 'GET':
+            book = Book.objects.get(pk=pk)
+            serializer=BookSerializer(book)
+            return Response(serializer.data)
+        case 'PUT':
+            book = Book.objects.get(pk=pk)
+            serializer = BookSerializer(book, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=200)
+            else:
+                return Response(serializer.errors, status=400)
+        case 'DELETE':
+            book = Book.objects.get(pk=pk)
+            book.delete()
+            return Response(status=204)
 
 #/book/title/title/
 @api_view()
