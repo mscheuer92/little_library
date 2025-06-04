@@ -4,25 +4,22 @@ from bookshelf.models import Book
 from bookshelf.api.serializers import BookSerializer
 
 
-# View for creating a new book.
-@api_view(['POST'])
-def create_book(request):
-    #serialize the data
-    serializer = BookSerializer(data=request.data)
-    # if data is valid
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=201)
-    else:
-        return Response(serializer.errors, status=400)
-    
-# View for getting all books.
 #/book/list/
-@api_view()
+@api_view(['GET','POST'])
 def get_book_list(request):
-    book = Book.objects.all()
-    serializer = BookSerializer(Book.objects.all(), many=True)
-    return Response(serializer.data)
+    if request.method == 'GET':
+        book = Book.objects.all()
+        # Use serializer
+        serializer = BookSerializer(book, many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = BookSerializer(data=request.data) # get data from user request
+        if serializer.is_valid(): # data is considered valid if it's in the correct format
+            serializer.save()
+            return Response(serializer.data, status=201)
+        else:
+            return Response(serializer.errors)        
+    
 
 # View for getting a specific book by id.
 #/book/<id>

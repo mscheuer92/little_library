@@ -8,7 +8,5 @@ class BookSerializer(serializers.Serializer):
     read = serializers.BooleanField()
     year_read = serializers.IntegerField()
 
-
-# POST method for creating a new book
-def create(self, validated_data):
-    return Book.object.create(**validated_data)
+    def create(self, validated_data):
+        return Book.objects.create(**validated_data)
