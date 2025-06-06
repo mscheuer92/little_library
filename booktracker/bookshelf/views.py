@@ -1,65 +1,55 @@
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.views import APIView
 from bookshelf.models import Book
 from bookshelf.api.serializers import BookSerializer
 
+class BookListAPIView(APIView):
+    def get(self, request):
+        book = Book.objects.all()
+        serializer = BookSerializer(book, many=True)
+        return Response(serializer.data, status=200)
+    
+    def post(self, request):
+        serializer = BookSerializer(data=request.data)
+        if serializer.is_valid(): # data is considered valid if it's in the correct format
+            serializer.save()
+            return Response(serializer.data, status=201)
+        else:
+            return Response(serializer.errors, status=400)
 
-#/book/list/
-@api_view(['GET','POST'])
-def get_book_list(request):
-    match request.menthod:
-        case 'GET':
-            book = Book.objects.all()
-            # Use serializer
-            serializer = BookSerializer(book, many=True)
+class BookDetailAPIView(APIView):
+    def get(self, request, pk):
+        try:
+            book = Book.objects.get(pk=pk)
+            serializer = BookSerializer(book)
             return Response(serializer.data, status=200)
-        case 'POST':
-            serializer = BookSerializer(data=request.data) # get data from user request
-            if serializer.is_valid(): # data is considered valid if it's in the correct format
+        except Book.DoesNotExist:
+            return Response({'error': 'Book was not found'}, status=404)
+
+    def put(self, request, pk):
+        try:
+            book = Book.objects.get(pk=pk)
+            serializer = BookSerializer(book, data=request.data)
+            if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=201)
+                return Response(serializer.data, status=200)
             else:
                 return Response(serializer.errors, status=400)
-    
-# View for getting a specific book by id.
-#/book/<id>
-@api_view(['GET','PUT','DELETE'])
-def get_book_by_id(request, pk):
-    try:
+        except Book.DoesNotExist:
+            return Response({'error': 'Book was not found'}, status=404)
+        
+    def delete(self, request, pk):
         book = Book.objects.get(pk=pk)
-        match request.method:
-            case 'GET':
-                serializer=BookSerializer(book)
-                return Response(serializer.data, status=200)   
-            case 'PUT':
-                serializer = BookSerializer(book, data=request.data)
-                if serializer.is_valid():
-                    serializer.save()
-                    return Response(serializer.data, status=200)
-                else:
-                    return Response(serializer.errors, status=400)
-            case 'DELETE': 
-                book.delete()
-                return Response(status=204)
-    except Book.DoesNotExist:
-        return Response({"error": "Book not found"}, status=404)
+        book.delete()
+        return Response(status=204)
 
-#/book/title/title/
-@api_view()
-def get_book_by_title(request, title):
-    try:
+class BookFilterAPIView(APIView):
+    def get(self, request, title):
         book = Book.objects.get(title=title)
         serializer = BookSerializer(book)
-        return Response(serializer.data)
-    except Book.DoesNotExist:
-        return Response({"error": "Title not found"}, status=404)
+        return Response(serializer.data, status=200)
 
-# list all books by specific author
-@api_view()
-def get_books_by_author(request, author):
-    try:
-        book = Book.objects.filter(author=author)
-        serializer = BookSerializer(book, many=True)
-        return Response(serializer.data)
-    except Book.DoesNotExist:
-        return Response({"error": "Author not found"}, status=404)
+    def get(self, request, author):
+        book = Book.objects.get(author=author)
+        serializer = BookSerializer(book)
+        return Response(serializer.data, status=200)
