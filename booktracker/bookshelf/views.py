@@ -43,13 +43,26 @@ class BookDetailAPIView(APIView):
         book.delete()
         return Response(status=204)
 
-class BookFilterAPIView(APIView):
-    def get(self, request, title):
-        book = Book.objects.get(title=title)
-        serializer = BookSerializer(book)
+class BookListByGenreView(APIView):
+    def get(self, request, genre):
+        books = Book.objects.filter(genre=genre)
+        if not books.exists():
+            return Response({"detail": f"No books found for genre: {genre}"}, status=404)
+        serializer = BookSerializer(books, many=True)
         return Response(serializer.data, status=200)
 
+class BookFilterByAuthorView(APIView):
     def get(self, request, author):
-        book = Book.objects.get(author=author)
-        serializer = BookSerializer(book)
+        books = Book.objects.filter(author=author)
+        if not books.exists():
+            return Response({"detail": f"No books found by author: {author}"}, status=404)
+        serializer = BookSerializer(books, many=True)
+        return Response(serializer.data, status=200)
+
+class BookFilterByTitleAPIView(APIView):
+    def get(self, request, title):
+        books = Book.objects.get(title=title)
+        if not books.exists():
+            return Response({"detail": f"No books found by title: {title}"}, status=404)
+        serializer = BookSerializer(books)
         return Response(serializer.data, status=200)

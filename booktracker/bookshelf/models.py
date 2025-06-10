@@ -3,11 +3,12 @@ from django.db import models
 # Create Book Model
 
 class Book(models.Model):
-    title = models.CharField()
+    title = models.CharField(max_length=100)
     author = models.CharField()
-    read = models.BooleanField(default=False) # default False means the book is not read yet
-    year_read = models.IntegerField() # null allows the field to be left blank
-
+    genre = models.CharField(max_length=50, null=True, blank=True)
+    read = models.BooleanField()
+    year_read = models.IntegerField(null=True, blank=True)
+    
 
     def __str__(self): # method to return a string representation of the model object
         return self.title
